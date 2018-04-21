@@ -1,3 +1,4 @@
+USE northwind;
 /* Exercise 32 */
 
 SELECT c.CustomerID, c.CompanyName, o.OrderID, sum(od.UnitPrice * od.Quantity) AS amount
@@ -38,3 +39,48 @@ SELECT EmployeeID, OrderID, OrderDate
 FROM Orders
 WHERE DAY(DATE_ADD(OrderDate, INTERVAL 1 DAY)) = 1
 ORDER BY EmployeeID, OrderID;
+
+/* Exercise 36 */
+
+SELECT od.OrderID, COUNT(*) AS TotalOrders
+FROM OrderDetails AS od
+JOIN Orders ON od.OrderID = Orders.OrderID
+GROUP BY od.OrderID
+ORDER BY TotalOrders DESC
+LIMIT 10;
+
+/* Exercise 37 */
+
+SELECT COUNT(*) * 0.02 INTO @nrow FROM Orders;
+SET @expr = CONCAT('SELECT OrderID FROM Orders ORDER BY RAND() LIMIT', @nrow);
+prepare stmt from @expr;
+EXECUTE stmt;
+
+/* Exercise 38 */
+
+SELECT *
+FROM OrderDetails
+WHERE Quantity >= 60
+GROUP BY OrderID, Quantity
+HAVING COUNT(*) > 1
+ORDER BY OrderID;
+
+/* Exercise 39 */
+
+SELECT * 
+FROM OrderDetails
+WHERE OrderID in (SELECT DISTINCT OrderID FROM OrderDetails WHERE Quantity >= 60 GROUP BY OrderID, Quantity HAVING COUNT(*) > 1 ORDER BY OrderID)
+ORDER BY Quantity;
+
+/* Exercise 40 */
+
+SELECT od.OrderID, ProductID, UnitPrice, Quantity, Discount
+FROM OrderDetails AS od
+JOIN (
+	SELECT OrderID
+	FROM OrderDetails
+	WHERE Quantity >= 60
+	GROUP BY OrderID, Quantity
+	HAVING COUNT(*) > 1
+) as ode
+ON od.OrderID = ode.OrderID;
